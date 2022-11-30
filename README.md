@@ -25,12 +25,15 @@ Subject to radical change
   - `dune` file specifying name and deps
 
 ```
-(executable
- (public_name day01)
- (name main)
- (libraries core))
+(library
+ (name day0)
+ (libraries core)
+ (inline_tests)
+ (preprocess (pps ppx_inline_test ppx_assert)))
 ```
 
   - one `.ml` file with solution
-  - inline tests for components
+  - inline tests for components, basic or using `%test_eq`
   - expect tests?
+* run tests for all days using `dune runtest`
+* run tests for dayN using `dune runtest dayN`
