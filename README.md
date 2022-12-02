@@ -18,22 +18,23 @@ opam install dune merlin ocaml-lsp-server odoc ocamlformat utop dune-release cor
 
 ## Day Solution Structure
 
-Subject to radical change
+Basic project layout adapted from https://github.com/shonfeder/aoc2021,
+and is subject to radical change.
 
-* one dune project with simple top-level `dune-project` file
-* one directory for each day with:
-  - `dune` file specifying name and deps
+There is one dune project with simple top-level `dune-project` file.
 
-```
-(library
- (name day0)
- (libraries core)
- (inline_tests)
- (preprocess (pps ppx_inline_test ppx_assert)))
-```
+### Day solutions
 
-  - one `.ml` file with solution
-  - inline tests for components, basic or using `%test_eq`
-  - expect tests?
-* run tests for all days using `dune runtest`
-* run tests for dayN using `dune runtest dayN`
+There is one module under `bin/` for each day. Each day module implements the
+`Solver` module type. Day modules are selected and instantiated in
+`bin/main.ml` which also feeds params (part #, etc) and input from `stdin`.
+
+### Common code
+
+Common code goes in `lib/aoc2022_lib.ml`, which also defines the `Solver`
+module type.
+
+### Tests
+
+All solutions for test inputs and both problems parts are implemented as cram
+tests. For example, day 1 tests live under `test/day1.t`.
