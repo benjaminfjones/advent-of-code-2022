@@ -14,15 +14,15 @@ let parse_input lines =
   List.fold_left lines ~init:[ [] ] ~f:proc
 
 let largest_sum lss =
-  let sums = List.map ~f:int_sum lss in
-  match int_max sums with
+  let sums = List.map ~f:sum_ints lss in
+  match max_ints sums with
   | None -> raise @@ Failure "unexpected empty sums"
   | Some s -> s
 
 let largest_three_sums lss =
-  let sums = List.map ~f:int_sum lss in
+  let sums = List.map ~f:sum_ints lss in
   let sorted = List.rev (List.sort sums ~compare:Int.compare) in
-  int_sum (List.slice sorted 0 3)
+  sum_ints (List.slice sorted 0 3)
 
 let solve params lines =
   let lss = parse_input lines in
