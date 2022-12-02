@@ -12,6 +12,8 @@ bug-reports: "https://github.com/benjaminfjones/advent-of-code-2022/issues"
 depends: [
   "ocaml"
   "dune" {>= "3.6"}
+  "ppx_inline_test"
+  "core"
   "odoc" {with-doc}
 ]
 build: [

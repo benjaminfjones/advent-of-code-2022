@@ -1,2 +1,2 @@
-(test
- (name advent_of_code_2022))
+(cram
+ (deps %{bin:aoc2022}))

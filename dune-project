@@ -4,6 +4,8 @@
 
 (generate_opam_files true)
 
+(cram enable)
+
 (source
  (github benjaminfjones/advent-of-code-2022))
 
@@ -19,7 +21,11 @@
  (name advent_of_code_2022)
  (synopsis "Advent of Code 2022 Solutions in OCaml")
  (description "Advent of Code 2022 Solutions in OCaml")
- (depends ocaml dune)
+ (depends
+   ocaml
+   dune
+   ppx_inline_test
+   core)
  (tags
   (topics "to describe" your project)))
 
