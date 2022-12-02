@@ -3,7 +3,7 @@ open Aoc2022_lib
 
 let solvers : (module Solver) Array.t =
   [| (module Day1)
-   (* ; (module Day2) *)
+   ; (module Day2)
   |]
 
 let () =
