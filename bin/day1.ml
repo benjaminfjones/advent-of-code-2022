@@ -30,4 +30,3 @@ let solve params lines =
   | 1 -> largest_sum lss
   | 2 -> largest_three_sums lss
   | _ -> raise @@ Failure "invalid part"
-
