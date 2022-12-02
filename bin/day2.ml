@@ -3,13 +3,17 @@ open Aoc2022_lib
 
 type move = Rock | Paper | Scissors
 
-let int_of_move = function Rock -> 0 | Paper -> 1 | Scissors -> 2
+(* The type `move` with `succ` and `pred` is isomorphic to Z/3Z with addition
+ * and subtraction by 1 mod 3 *)
+let succ = function Rock -> Paper | Paper -> Scissors | Scissors -> Rock
+let pred = function Rock -> Scissors | Paper -> Rock | Scissors -> Paper
 
-let move_of_int = function
-  | 0 -> Rock
-  | 1 -> Paper
-  | 2 -> Scissors
-  | _ -> raise @@ Failure "invalid move int"
+let move_equal m0 m1 =
+  match (m0, m1) with
+  | Rock, Rock -> true
+  | Paper, Paper -> true
+  | Scissors, Scissors -> true
+  | _ -> false
 
 type outcome = Lose | Draw | Win
 
@@ -28,14 +32,10 @@ let move_of_code = function
 type round = move * move
 
 let outcome_of_round (r : round) : outcome =
-  let iom, imm = (int_of_move (fst r), int_of_move (snd r)) in
-  match imm - iom with
-  | 0 -> Draw
-  | 1 -> Win
-  | -1 -> Lose
-  | 2 -> Lose
-  | -2 -> Win
-  | _ -> raise @@ Failure "impossible"
+  let other_move, my_move = r in
+  if move_equal (succ other_move) my_move then Win
+  else if move_equal (succ my_move) other_move then Lose
+  else Draw
 
 let score_round (r : round) : int =
   score_outcome (outcome_of_round r) + score_move (snd r)
@@ -47,19 +47,18 @@ let parse_input (lines : string list) : (move * move) list =
   in
   List.map ~f:line_parser lines
 
-let score_tournament rounds = int_sum (List.map ~f:score_round rounds)
+let score_tournament rounds = sum_ints (List.map ~f:score_round rounds)
 let decrypt_xyz = function Rock -> Lose | Paper -> Draw | Scissors -> Win
 
-let decrypt_round (r : round) : round =
-  let iom = int_of_move (fst r) in
-  match decrypt_xyz (snd r) with
-  | Lose -> (fst r, move_of_int ((iom - 1) % 3))
-  | Draw -> (fst r, fst r)
-  | Win -> (fst r, move_of_int ((iom + 1) % 3))
+let decrypt_round (om, mm) =
+  match decrypt_xyz mm with
+  | Lose -> (om, pred om)
+  | Draw -> (om, om)
+  | Win -> (om, succ om)
 
 let solve params lines =
-  let rounds = parse_input lines in
+  let rs = parse_input lines in
   match params.(1) |> int_of_string with
-  | 1 -> score_tournament rounds
-  | 2 -> score_tournament (List.map ~f:decrypt_round rounds)
+  | 1 -> score_tournament rs
+  | 2 -> score_tournament (List.map ~f:decrypt_round rs)
   | _ -> raise @@ Failure "invalid part"
