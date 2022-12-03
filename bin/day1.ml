@@ -21,8 +21,8 @@ let largest_sum lss =
 
 let largest_three_sums lss =
   let sums = List.map ~f:sum_ints lss in
-  let sorted = List.rev (List.sort sums ~compare:Int.compare) in
-  sum_ints (List.slice sorted 0 3)
+  let sorted = List.sort sums ~compare:(fun s t -> -1 * Int.compare s t) in
+  sum_ints (List.take sorted 3)
 
 let solve params lines =
   let lss = parse_input lines in
