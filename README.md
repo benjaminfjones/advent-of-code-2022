@@ -29,6 +29,15 @@ There is one module under `bin/` for each day. Each day module implements the
 `Solver` module type. Day modules are selected and instantiated in
 `bin/main.ml` which also feeds params (part #, etc) and input from `stdin`.
 
+```ocaml
+let solve params _lines =
+  (* let domain = parse_input lines in *)
+  match params.(1) |> int_of_string with
+  | 1 -> 0 (* TODO solve part 1 *)
+  | 2 -> 0 (* TODO solve part 2 *)
+  | _ -> raise @@ Failure "invalid part"
+```
+
 ### Common code
 
 Common code goes in `lib/aoc2022_lib.ml`, which also defines the `Solver`
@@ -38,3 +47,37 @@ module type.
 
 All solutions for test inputs and both problems parts are implemented as cram
 tests. For example, day 1 tests live under `test/day1.t`.
+
+### TODO Each Day
+
+1. create new `bin/dayN.ml` implementing `Solver`
+2. add module `DayN` to list in `bin/main.ml`
+3. setup cram test dir for day N:
+
+```shell
+export AOC_DAY=N
+mkdir -p test/day${AOC_DAY}.t
+cat <<EOF >test/day${AOC_DAY}.t/run.t
+https://adventofcode.com/2022/day/${AOC_DAY}
+
+  $ export AOC_DAY=${AOC_DAY}
+
+Part 1: TBD
+
+  $ aoc2022 1 < test
+  0
+
+  $ aoc2022 1 < input
+  0
+
+Part 2: TBD
+
+  $ aoc2022 2 < test
+  0
+
+  $ aoc2022 2 < input
+  0
+EOF
+touch test/day${AOC_DAY}.t/test
+touch test/day${AOC_DAY}.t/input
+```
