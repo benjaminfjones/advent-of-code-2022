@@ -2,7 +2,9 @@ open Core
 open Aoc2022_lib
 
 let solvers : (module Solver) Array.t =
-  [| (module Day1); (module Day2); (module Day3); (module Day4) |]
+  [|
+    (module Day1); (module Day2); (module Day3); (module Day4); (module Day5);
+  |]
 
 let () =
   (* TODO: add debug logging
