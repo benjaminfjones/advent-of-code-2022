@@ -56,11 +56,19 @@ tests. For example, day 1 tests live under `test/day1.t`.
 
 ```shell
 export AOC_DAY=N
+cat >bin/day${AOC_DAY}.ml <<EOF
+let solve params _lines =
+  (* let domain = parse_input lines in *)
+  match params.(1) |> int_of_string with
+  | 1 -> 0 (* TODO solve part 1 *)
+  | 2 -> 0 (* TODO solve part 2 *)
+  | _ -> raise @@ Failure "invalid part"
+EOF
 mkdir -p test/day${AOC_DAY}.t
-cat <<EOF >test/day${AOC_DAY}.t/run.t
-https://adventofcode.com/2022/day/${AOC_DAY}
+cat >test/day${AOC_DAY}.t/run.t <<EOF
+https://adventofcode.com/2022/day/$AOC_DAY
 
-  $ export AOC_DAY=${AOC_DAY}
+  $ export AOC_DAY=$AOC_DAY
 
 Part 1: TBD
 
