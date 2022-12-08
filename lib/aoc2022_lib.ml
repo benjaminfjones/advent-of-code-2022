@@ -5,7 +5,10 @@ module type Solver = sig
 end
 
 let sum_ints = List.sum (module Int) ~f:(fun x -> x)
+let mult_ints = List.fold ~init:1 ~f:( * )
 let max_ints = List.max_elt ~compare:Int.compare
+let or_bools = List.fold ~init:false ~f:( || )
+let and_bools = List.fold ~init:true ~f:( && )
 
 (***********
  * IntRange
