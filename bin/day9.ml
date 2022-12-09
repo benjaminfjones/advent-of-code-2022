@@ -14,7 +14,11 @@ let compare_vec2 (x, y) (v, w) =
 let zero = (0, 0)
 let ( +> ) (x, y) (v, w) = (x + v, y + w)
 
-(* L2 norm (squared) *)
+(* L2 norm (squared)
+ *
+ * Note: minimizing L2^2 is equivalent to minimizing L2 and lets us avoid
+ * doing any floating point arithmetic.
+ *)
 let dist2 (x, y) (v, w) = ((x - v) * (x - v)) + ((y - w) * (y - w))
 
 (* L_infinity norm *)
@@ -75,13 +79,6 @@ let move_knot m kt =
 *)
 type state = { knots : vec2 list; trace : vec2 list }
 
-(* A rope with 2 knots: a head and a tail *)
-let initial_state_p1 = { knots = [ zero; zero ]; trace = [ zero ] }
-
-(* A rope with 10 knots *)
-let initial_state_p2 =
-  { knots = Aoc2022_lib.repeat ~num:10 zero; trace = [ zero ] }
-
 let exec_move m { knots; trace } =
   (*
      let knots = [knot0; knot1; ...]
@@ -96,6 +93,7 @@ let exec_move m { knots; trace } =
      [knot0'; knot1'; ...; knotN']
   *)
   let head' = move_knot m (List.hd_exn knots) in
+  (* TODO: replace `aux` with a fold *)
   let rec aux kts_rev knots =
     match knots with
     | [] -> List.rev kts_rev
@@ -122,9 +120,15 @@ let solve params lines =
   let moves = parse_input lines in
   match params.(1) |> int_of_string with
   | 1 ->
-      let final_state = exec_move_list moves initial_state_p1 in
+      (* A rope with 2 knots: a head and a tail *)
+      let initial_state = { knots = [ zero; zero ]; trace = [ zero ] } in
+      let final_state = exec_move_list moves initial_state in
       List.length (List.dedup_and_sort ~compare:compare_vec2 final_state.trace)
   | 2 ->
-      let final_state = exec_move_list moves initial_state_p2 in
+      (* A rope with 10 knots *)
+      let initial_state =
+        { knots = Aoc2022_lib.repeat ~num:10 zero; trace = [ zero ] }
+      in
+      let final_state = exec_move_list moves initial_state in
       List.length (List.dedup_and_sort ~compare:compare_vec2 final_state.trace)
   | _ -> raise @@ Failure "invalid part"
