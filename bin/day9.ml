@@ -57,20 +57,28 @@ let parse_dir = function
 
 let repeat ~(num : int) elt = List.map (List.range 0 num) ~f:(fun _ -> elt)
 
-type state = { head : vec2; tail : vec2; trace : vec2 list }
+type state = { knots : vec2 list; trace : vec2 list }
 
-let initial_state = { head = zero; tail = zero; trace = [ zero ] }
+let initial_state_p1 = { knots = [ zero; zero ]; trace = [ zero ] }
+let initial_state_p2 = { knots = repeat ~num:10 zero; trace = [ zero ] }
 
-let exec_move m { head; tail; trace } =
-  let head' =
-    match m with
-    | L -> head +> (-1, 0)
-    | R -> head +> (1, 0)
-    | U -> head +> (0, 1)
-    | D -> head +> (0, -1)
+let move_knot m kt =
+  match m with
+  | L -> kt +> (-1, 0)
+  | R -> kt +> (1, 0)
+  | U -> kt +> (0, 1)
+  | D -> kt +> (0, -1)
+
+let exec_move m { knots; trace } =
+  let head' = move_knot m (List.hd_exn knots) in
+  let rec aux kts_rev knots =
+    match knots with
+    | [] -> List.rev kts_rev
+    | k :: rest -> aux (chase k (List.hd_exn kts_rev) :: kts_rev) rest
   in
-  let tail' = chase tail head' in
-  { head = head'; tail = tail'; trace = tail' :: trace }
+  let knots' = aux [ head' ] (List.tl_exn knots) in
+  let tail' = List.last_exn knots' in
+  { knots = knots'; trace = tail' :: trace }
 
 let exec_move_list ms st =
   List.fold ms ~init:st ~f:(fun st0 m0 ->
@@ -92,7 +100,9 @@ let solve params lines =
   let moves = parse_input lines in
   match params.(1) |> int_of_string with
   | 1 ->
-      let final_state = exec_move_list moves initial_state in
+      let final_state = exec_move_list moves initial_state_p1 in
       List.length (List.dedup_and_sort ~compare:compare_vec2 final_state.trace)
-  | 2 -> 0 (* TODO solve part 2 *)
+  | 2 ->
+      let final_state = exec_move_list moves initial_state_p2 in
+      List.length (List.dedup_and_sort ~compare:compare_vec2 final_state.trace)
   | _ -> raise @@ Failure "invalid part"

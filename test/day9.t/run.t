@@ -13,7 +13,10 @@ Part 1: TBD
 Part 2: TBD
 
   $ aoc2022 2 < test
-  0
+  1
+
+  $ aoc2022 2 < test2
+  36
 
   $ aoc2022 2 < input
-  0
+  2493
