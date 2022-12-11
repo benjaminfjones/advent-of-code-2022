@@ -4,6 +4,8 @@ module type Solver = sig
   val solve : string Array.t -> string list -> int
 end
 
+let read_lines file = In_channel.read_lines file
+
 (* Random List enhancements *)
 
 let sum_ints = List.sum (module Int) ~f:(fun x -> x)
@@ -70,6 +72,7 @@ module IntGrid : sig
      TODO: generalize this to arbitrary ints, split by some specified function
   *)
   val from_lines : string list -> t
+  val allocate : height:int -> width:int -> default:int -> t
 
   (* size in the y-direction; always >= 1 *)
   val height : t -> int
@@ -92,6 +95,9 @@ end = struct
            (String.to_list line))
     in
     Array.of_list (List.map ~f:row_of_line lines)
+
+  let allocate ~height ~width ~default =
+    Array.of_list (repeat ~num:height (Array.create ~len:width default))
 
   let height = Array.length
   let width g = Array.length g.(0)
