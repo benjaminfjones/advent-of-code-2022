@@ -78,7 +78,18 @@ let test_monkies =
     };
   ]
 
-(* These structs are the result of a vim macro over the original input :) *)
+(* These structs are the result of a vim macro over the original input :)
+ *
+ * See `day11_vim_macro.txt`
+ *
+ *   Monkey 0:                                { id = 0;
+ *     Starting items: 83, 97, 95, 67         items = [ 83; 97; 95; 67 ];
+ *     Operation: new = old * 19              operation = (fun old -> old * 19);
+ *     Test: divisible by 17           ==>    test = (fun x -> if x % 17 = 0 then
+ *       If true: throw to monkey 2             then 2
+ *       If false: throw to monkey 7            else 7) };
+ *)
+
 let input_monkeys =
   [
     {
