@@ -65,13 +65,15 @@ module IntGrid : sig
   type t
 
   (* get an element value from the grid; exn if position is out of bounds *)
-  val get : t -> int -> int -> int
+  val get_exn : t -> col:int -> row:int -> int
+
+  val get : t -> col:int -> row:int -> int option
 
   (* Construct an IntGrid from a 2d array of digits.
 
      TODO: generalize this to arbitrary ints, split by some specified function
   *)
-  val from_lines : string list -> t
+  val from_lines : f:(char -> int) -> string list -> t
   val allocate : height:int -> width:int -> default:int -> t
 
   (* size in the y-direction; always >= 1 *)
@@ -80,19 +82,27 @@ module IntGrid : sig
   (* size in the x-direction; always >= 1 *)
   val width : t -> int
 
+  (* Is the given col, row a valid grid position? *)
+  val valid_pos : t -> col:int -> row:int -> bool
+
   (* list of all positions in the grid *)
   val positions : t -> (int * int) list
+
+  (* list of all cardinal neighbor positions *)
+  val cardinal_neighbors : t -> col:int -> row:int -> (int * int) list
 end = struct
   type t = int Array.t Array.t
 
-  let get g x y = g.(x).(y)
+  let get_exn g ~col ~row = g.(col).(row)
 
-  let from_lines lines =
+  let get g ~col ~row =
+      try Some g.(col).(row) with
+      | _e -> None
+
+  let from_lines ~f lines =
     let row_of_line line =
       Array.of_list
-        (List.map
-           ~f:(fun c -> int_of_string (Char.to_string c))
-           (String.to_list line))
+        (List.map ~f (String.to_list line))
     in
     Array.of_list (List.map ~f:row_of_line lines)
 
@@ -101,9 +111,19 @@ end = struct
 
   let height = Array.length
   let width g = Array.length g.(0)
+  let valid_pos g ~col ~row =
+    0 <= col && col < width g && 0 <= row && row < height g
 
   let positions g =
     List.concat_map
       ~f:(fun y -> List.map ~f:(fun x -> (x, y)) (List.range 0 (width g)))
       (List.range 0 (height g))
+
+  let cardinal_neighbors g ~col ~row =
+    List.filter_map
+      ~f:(fun (dx, dy) ->
+          let col', row' = col + dx, row + dy in
+          if valid_pos g ~col:(col + dx) ~row:(row + dy) then Some (col', row') else
+              None)
+      [(-1, 0); (0, 1); (1, 0); (0, -1)]
 end
