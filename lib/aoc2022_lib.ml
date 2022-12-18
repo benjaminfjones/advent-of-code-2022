@@ -11,6 +11,7 @@ let read_lines file = In_channel.read_lines file
 let sum_ints = List.sum (module Int) ~f:(fun x -> x)
 let mult_ints = List.fold ~init:1 ~f:( * )
 let max_ints = List.max_elt ~compare:Int.compare
+let min_ints = List.min_elt ~compare:Int.compare
 let or_bools = List.fold ~init:false ~f:( || )
 let and_bools = List.fold ~init:true ~f:( && )
 let repeat ~(num : int) elt = List.map (List.range 0 num) ~f:(fun _ -> elt)
@@ -67,13 +68,22 @@ module IntGrid : sig
   (* get an element value from the grid; exn if position is out of bounds *)
   val get_exn : t -> col:int -> row:int -> int
 
+  (* get an element value from the grid using a position tuple *)
+  val gett_exn : t -> pos:(int * int) -> int
+
+  (* safely get a grid element *)
   val get : t -> col:int -> row:int -> int option
 
-  (* Construct an IntGrid from a 2d array of digits.
+  (* set a grid value in-place *)
+  val set : t -> col:int -> row:int -> int -> unit
 
-     TODO: generalize this to arbitrary ints, split by some specified function
-  *)
+  (* find a value in the grid, returing it's position *)
+  val find : t -> f:(int -> bool) -> (int * int) option
+
+  (* Construct an IntGrid from a 2d array of chars *)
   val from_lines : f:(char -> int) -> string list -> t
+
+  (* allocate a new grid filled with a default value *)
   val allocate : height:int -> width:int -> default:int -> t
 
   (* size in the y-direction; always >= 1 *)
@@ -88,16 +98,20 @@ module IntGrid : sig
   (* list of all positions in the grid *)
   val positions : t -> (int * int) list
 
-  (* list of all cardinal neighbor positions *)
-  val cardinal_neighbors : t -> col:int -> row:int -> (int * int) list
+  (* list of all cardinal neighbors of a given position *)
+  val cardinal_neighbors : t -> int * int -> (int * int) list
 end = struct
   type t = int Array.t Array.t
 
-  let get_exn g ~col ~row = g.(col).(row)
+  let get_exn g ~col ~row = g.(row).(col)
+  let gett_exn g ~pos = g.(snd pos).(fst pos)
 
   let get g ~col ~row =
-      try Some g.(col).(row) with
+      try Some g.(row).(col) with
       | _e -> None
+
+  let set g ~col ~row v =
+    g.(row).(col) <- v
 
   let from_lines ~f lines =
     let row_of_line line =
@@ -116,10 +130,15 @@ end = struct
 
   let positions g =
     List.concat_map
-      ~f:(fun y -> List.map ~f:(fun x -> (x, y)) (List.range 0 (width g)))
+      ~f:(fun row -> List.map ~f:(fun col -> (col, row)) (List.range 0 (width g)))
       (List.range 0 (height g))
 
-  let cardinal_neighbors g ~col ~row =
+  let find g ~f =
+    positions g
+      |> List.find ~f:(fun (col, row) -> f (get_exn g ~col:col ~row:row))
+
+
+  let cardinal_neighbors g (col, row) =
     List.filter_map
       ~f:(fun (dx, dy) ->
           let col', row' = col + dx, row + dy in
