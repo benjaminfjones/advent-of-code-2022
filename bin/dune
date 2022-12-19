@@ -1,4 +1,6 @@
 (executable
  (public_name aoc2022)
  (name main)
- (libraries core aoc2022_lib))
+ (libraries core aoc2022_lib)
+ (preprocess (pps ppx_jane))
+)
