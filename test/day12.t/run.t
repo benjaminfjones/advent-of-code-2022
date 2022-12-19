@@ -2,28 +2,53 @@ https://adventofcode.com/2022/day/12
 
   $ export AOC_DAY=12
 
-Part 1: TBD
+Part 1: Find the shortest path from start to end on the given topographic map
 
   $ aoc2022 1 < test0
-  summary: backtracks=1 prunes=0 goals=2 mingoallen=3
   2
 
   $ aoc2022 1 < test1
-  summary: backtracks=3 prunes=0 goals=1 mingoallen=5
   4
 
   $ aoc2022 1 < test
+  31
+
+  $ aoc2022 1 < input
+  370
+
+Performance notes: A* with linear best fscore selection
+❯ hyperfine "_build/install/default/bin/aoc2022 1 < test/day12.t/input"
+Benchmark 1: _build/install/default/bin/aoc2022 1 < test/day12.t/input
+Time (mean ± σ):      15.3 ms ±   0.4 ms    [User: 13.5 ms, System: 1.2 ms]
+Range (min … max):    14.6 ms …  16.8 ms    173 runs
+
+
+Attempt at DFS with hill climbing heuristics:
+
+  $ aoc2022 10 < test0
+  summary: backtracks=1 prunes=0 goals=2 mingoallen=3
+  2
+
+  $ aoc2022 10 < test1
+  summary: backtracks=3 prunes=0 goals=1 mingoallen=5
+  4
+
+  $ aoc2022 10 < test
   summary: backtracks=1280 prunes=23 goals=7 mingoallen=32
   31
 
-TODO timing out
-$ aoc2022 1 < input
-0
 
-Part 2: TBD
+Part 2: Find the shortest path from *any* height=0 start to end on the given topographic map
 
   $ aoc2022 2 < test
-  0
+  29
 
   $ aoc2022 2 < input
-  0
+  363
+
+Performance notes: A* with linear best fscore selection
+❯ hyperfine "_build/install/default/bin/aoc2022 2 < test/day12.t/input"
+Benchmark 1: _build/install/default/bin/aoc2022 2 < test/day12.t/input
+Time (mean ± σ):      4.552 s ±  0.020 s    [User: 4.536 s, System: 0.014 s]
+Range (min … max):    4.528 s …  4.588 s    10 runs
+
