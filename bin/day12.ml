@@ -64,7 +64,6 @@ type astar_state = {
   openqueue : PriorityPos.t Heap.t;
   camefrom : position PosMap.t;
   gscore : int PosMap.t;
-  fscore : int PosMap.t;
 }
 
 let astar (topo : topomap) : position list option =
@@ -88,20 +87,19 @@ let astar (topo : topomap) : position list option =
           (PriorityPos.create topo.start start_priority);
       camefrom = PosMap.empty;
       gscore = PosMap.(empty |> set ~key:topo.start ~data:0);
-      fscore = PosMap.(empty |> set ~key:topo.start ~data:start_priority);
     }
   in
   let rec loop (main_loop_state : astar_state) : position list option =
     if PosSet.is_empty main_loop_state.openset then
-      (* (Printf.printf "openset is empty without reaching goal: start=%s\n" *)
-      (* (pp_pos topo.start); None) *)
+      (* openset is empty without reaching goal *)
       None
     else
+      (* pop the position from openqueue with highest priority (minimum fscore) *)
       let current_pp, openqueue' =
         Option.value_exn (Heap.pop main_loop_state.openqueue)
       in
       let current = PriorityPos.get_pos current_pp in
-      (* remove current from openset *)
+      (* remove current from openset in sync with openqueue *)
       let main_loop_state' =
         {
           main_loop_state with
@@ -116,30 +114,20 @@ let astar (topo : topomap) : position list option =
         Some (reconstruct_path main_loop_state.camefrom current)
       else
         (* graph weight from current -> nb is always 1 *)
-        let gscore_from_current =
-          PosMap.find_exn main_loop_state'.gscore current + 1
-        in
+        let gscore_from_current = gscore main_loop_state' current + 1 in
         let neighbors = uphill_neighbors topo current in
         let visit_neighbor st nb =
           if gscore_from_current < gscore st nb then
             let fscore_nb = gscore_from_current + hscore nb in
-            let openset', openqueue' =
-              if PosSet.mem st.openset nb then (st.openset, st.openqueue)
-              else
-                ( PosSet.add st.openset nb,
-                  Heap.add st.openqueue (PriorityPos.create nb fscore_nb) )
-            in
-            let camefrom' = PosMap.set st.camefrom ~key:nb ~data:current in
-            let gscore' =
-              PosMap.set st.gscore ~key:nb ~data:gscore_from_current
-            in
-            let fscore' = PosMap.set st.fscore ~key:nb ~data:fscore_nb in
+            let nb_in_open = PosSet.mem st.openset nb in
             {
-              openset = openset';
-              openqueue = openqueue';
-              camefrom = camefrom';
-              gscore = gscore';
-              fscore = fscore';
+              openset =
+                (if nb_in_open then st.openset else PosSet.add st.openset nb);
+              openqueue =
+                (if nb_in_open then st.openqueue
+                else Heap.add st.openqueue (PriorityPos.create nb fscore_nb));
+              camefrom = PosMap.set st.camefrom ~key:nb ~data:current;
+              gscore = PosMap.set st.gscore ~key:nb ~data:gscore_from_current;
             }
           else st
         in
