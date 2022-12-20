@@ -31,6 +31,18 @@ module Position = struct
   type t = int * int [@@deriving sexp, compare]
 end
 
+module PriorityPos = struct
+  type t = { position : Position.t; priority : int }
+
+  let create position priority = { position; priority }
+
+  let compare { position = _; priority = x1 } { position = _; priority = x2 } =
+    Int.compare x1 x2
+
+  let get_pos pp = pp.position
+  let get_pri pp = pp.priority
+end
+
 module PosSet = Set.Make (Position)
 module PosMap = Map.Make (Position)
 
@@ -49,23 +61,11 @@ let reconstruct_path (came_from : position PosMap.t) (current : position) :
 
 type astar_state = {
   openset : PosSet.t;
+  openqueue : PriorityPos.t Heap.t;
   camefrom : position PosMap.t;
   gscore : int PosMap.t;
   fscore : int PosMap.t;
 }
-
-(*
- * Return the node in the open set with minimum fscore.
- *
- * Assumes: every element of st.openset is a key in st.fscore
- * TODO: replace linear scan with paired-heap priority queue.
- *)
-let find_best (st : astar_state) : position option =
-  PosSet.to_list st.openset
-  |> List.min_elt ~compare:(fun p1 p2 ->
-         Int.compare
-           (PosMap.find_exn st.fscore p1)
-           (PosMap.find_exn st.fscore p2))
 
 let astar (topo : topomap) : position list option =
   let hscore pos = dist_inf topo.end_ pos in
@@ -78,30 +78,38 @@ let astar (topo : topomap) : position list option =
   let gscore st pos =
     PosMap.find st.gscore pos |> Option.value ~default:global_max_gscore
   in
+  let start_priority = hscore topo.start in
   let init_state =
     {
       openset = PosSet.singleton topo.start;
+      openqueue =
+        Heap.add
+          (Heap.empty ~compare:PriorityPos.compare)
+          (PriorityPos.create topo.start start_priority);
       camefrom = PosMap.empty;
       gscore = PosMap.(empty |> set ~key:topo.start ~data:0);
-      fscore = PosMap.(empty |> set ~key:topo.start ~data:(hscore topo.start));
+      fscore = PosMap.(empty |> set ~key:topo.start ~data:start_priority);
     }
   in
   let rec loop (main_loop_state : astar_state) : position list option =
     if PosSet.is_empty main_loop_state.openset then
-      (* DEBUG *)
       (* (Printf.printf "openset is empty without reaching goal: start=%s\n" *)
       (* (pp_pos topo.start); None) *)
       None
     else
-      let current = Option.value_exn (find_best main_loop_state) in
+      let current_pp, openqueue' =
+        Option.value_exn (Heap.pop main_loop_state.openqueue)
+      in
+      let current = PriorityPos.get_pos current_pp in
       (* remove current from openset *)
       let main_loop_state' =
         {
           main_loop_state with
           openset = PosSet.remove main_loop_state.openset current;
+          openqueue = openqueue';
         }
       in
-      (* DEBUG *)
+      (* TRACE PATHS *)
       (* Printf.printf "path: %s\n" *)
       (*   (pp_path (reconstruct_path main_loop_state.camefrom current)); *)
       if position_equal current topo.end_ then
@@ -114,20 +122,21 @@ let astar (topo : topomap) : position list option =
         let neighbors = uphill_neighbors topo current in
         let visit_neighbor st nb =
           if gscore_from_current < gscore st nb then
-            let openset' =
-              if PosSet.mem st.openset nb then st.openset
-              else PosSet.add st.openset nb
+            let fscore_nb = gscore_from_current + hscore nb in
+            let openset', openqueue' =
+              if PosSet.mem st.openset nb then (st.openset, st.openqueue)
+              else
+                ( PosSet.add st.openset nb,
+                  Heap.add st.openqueue (PriorityPos.create nb fscore_nb) )
             in
             let camefrom' = PosMap.set st.camefrom ~key:nb ~data:current in
             let gscore' =
               PosMap.set st.gscore ~key:nb ~data:gscore_from_current
             in
-            let fscore' =
-              PosMap.set st.fscore ~key:nb
-                ~data:(gscore_from_current + hscore nb)
-            in
+            let fscore' = PosMap.set st.fscore ~key:nb ~data:fscore_nb in
             {
               openset = openset';
+              openqueue = openqueue';
               camefrom = camefrom';
               gscore = gscore';
               fscore = fscore';
@@ -139,7 +148,7 @@ let astar (topo : topomap) : position list option =
   loop init_state
 
 (*
- * Depth first search with pruning heuristics, and local best-first search
+ * Depth first search with pruning heuristics and local best-first search
  * These are insufficient to solve the puzzle.
  *)
 

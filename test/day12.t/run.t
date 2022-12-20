@@ -22,6 +22,11 @@ Benchmark 1: _build/install/default/bin/aoc2022 1 < test/day12.t/input
 Time (mean ± σ):      15.3 ms ±   0.4 ms    [User: 13.5 ms, System: 1.2 ms]
 Range (min … max):    14.6 ms …  16.8 ms    173 runs
 
+Performance notes: A* with Pairing Heap best fscore selection
+❯ hyperfine "_build/install/default/bin/aoc2022 1 < test/day12.t/input"
+Benchmark 1: _build/install/default/bin/aoc2022 1 < test/day12.t/input
+Time (mean ± σ):       7.5 ms ±   0.4 ms    [User: 5.7 ms, System: 1.2 ms]
+Range (min … max):     6.9 ms …   8.7 ms    289 runs
 
 Attempt at DFS with hill climbing heuristics:
 
@@ -52,3 +57,8 @@ Benchmark 1: _build/install/default/bin/aoc2022 2 < test/day12.t/input
 Time (mean ± σ):      4.552 s ±  0.020 s    [User: 4.536 s, System: 0.014 s]
 Range (min … max):    4.528 s …  4.588 s    10 runs
 
+Performance notes: A* with Pairing Heap best fscore selection
+❯ hyperfine "_build/install/default/bin/aoc2022 2 < test/day12.t/input"
+Benchmark 1: _build/install/default/bin/aoc2022 2 < test/day12.t/input
+Time (mean ± σ):      1.533 s ±  0.008 s    [User: 1.525 s, System: 0.006 s]
+Range (min … max):    1.519 s …  1.547 s    10 runs
