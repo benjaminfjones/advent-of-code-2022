@@ -9,10 +9,11 @@ let position_equal (x, y) (z, w) = x = z && y = w
 let dist2 (x, y) (z, w) = ((x - z) * (x - z)) + ((y - w) * (y - w))
 let dist_inf (x, y) (z, w) = abs (x - z) + abs (y - w)
 let pp_pos (col, row) = Printf.sprintf "(%d,%d)" col row
+
 let pp_path (path : position list) : string =
-     List.map path ~f:pp_pos
-     |> String.concat ~sep:"; "
-let num_steps (path: position list) : int = (List.length path) - 1
+  List.map path ~f:pp_pos |> String.concat ~sep:"; "
+
+let num_steps (path : position list) : int = List.length path - 1
 
 (* Topomap is a 2d grid of positive integer heights *)
 type topomap = { start : position; end_ : position; grid : IntGrid.t }
@@ -41,8 +42,7 @@ let reconstruct_path (came_from : position PosMap.t) (current : position) :
   let rec loop result =
     let cur = List.hd_exn result in
     match PosMap.find came_from cur with
-    | Some prev ->
-      loop (prev :: result)
+    | Some prev -> loop (prev :: result)
     | None -> result
   in
   loop [ current ]
@@ -67,7 +67,7 @@ let find_best (st : astar_state) : position option =
            (PosMap.find_exn st.fscore p1)
            (PosMap.find_exn st.fscore p2))
 
-let astar (topo : topomap) : (position list) option =
+let astar (topo : topomap) : position list option =
   let hscore pos = dist_inf topo.end_ pos in
   (* gscore = min path length to each position so far under consideration.
      Global upper bound on path lengths is the number of positions in the
@@ -86,7 +86,7 @@ let astar (topo : topomap) : (position list) option =
       fscore = PosMap.(empty |> set ~key:topo.start ~data:(hscore topo.start));
     }
   in
-  let rec loop (main_loop_state : astar_state) : (position list) option =
+  let rec loop (main_loop_state : astar_state) : position list option =
     if PosSet.is_empty main_loop_state.openset then
       (* DEBUG *)
       (* (Printf.printf "openset is empty without reaching goal: start=%s\n" *)
@@ -94,57 +94,47 @@ let astar (topo : topomap) : (position list) option =
       None
     else
       let current = Option.value_exn (find_best main_loop_state) in
+      (* remove current from openset *)
+      let main_loop_state' =
+        {
+          main_loop_state with
+          openset = PosSet.remove main_loop_state.openset current;
+        }
+      in
       (* DEBUG *)
       (* Printf.printf "path: %s\n" *)
       (*   (pp_path (reconstruct_path main_loop_state.camefrom current)); *)
       if position_equal current topo.end_ then
         Some (reconstruct_path main_loop_state.camefrom current)
       else
-        (* remove current from openset *)
-        let main_loop_state' =
-          {
-            main_loop_state with
-            openset = PosSet.remove main_loop_state.openset current;
-          }
-        in
         (* graph weight from current -> nb is always 1 *)
         let gscore_from_current =
           PosMap.find_exn main_loop_state'.gscore current + 1
         in
         let neighbors = uphill_neighbors topo current in
-        let rec nb_loop nb_loop_state nbs =
-          match nbs with
-          | [] -> nb_loop_state
-          | nb :: rest ->
-              if gscore_from_current < gscore nb_loop_state nb then
-                let openset' =
-                  if PosSet.mem nb_loop_state.openset nb then
-                    nb_loop_state.openset
-                  else PosSet.add nb_loop_state.openset nb
-                in
-                let camefrom' =
-                  PosMap.set nb_loop_state.camefrom ~key:nb ~data:current
-                in
-                let gscore' =
-                  PosMap.set nb_loop_state.gscore ~key:nb
-                    ~data:gscore_from_current
-                in
-                let fscore' =
-                  PosMap.set nb_loop_state.fscore ~key:nb
-                    ~data:(gscore_from_current + hscore nb)
-                in
-                nb_loop
-                  {
-                    openset = openset';
-                    camefrom = camefrom';
-                    gscore = gscore';
-                    fscore = fscore';
-                  }
-                  rest
-              else nb_loop nb_loop_state rest
+        let visit_neighbor st nb =
+          if gscore_from_current < gscore st nb then
+            let openset' =
+              if PosSet.mem st.openset nb then st.openset
+              else PosSet.add st.openset nb
+            in
+            let camefrom' = PosMap.set st.camefrom ~key:nb ~data:current in
+            let gscore' =
+              PosMap.set st.gscore ~key:nb ~data:gscore_from_current
+            in
+            let fscore' =
+              PosMap.set st.fscore ~key:nb
+                ~data:(gscore_from_current + hscore nb)
+            in
+            {
+              openset = openset';
+              camefrom = camefrom';
+              gscore = gscore';
+              fscore = fscore';
+            }
+          else st
         in
-        let main_loop_state'' = nb_loop main_loop_state' neighbors in
-        loop main_loop_state''
+        loop (List.fold neighbors ~init:main_loop_state' ~f:visit_neighbor)
   in
   loop init_state
 
@@ -318,12 +308,12 @@ let solve params lines =
   | 2 ->
       let low_starting_topos =
         IntGrid.positions topo.grid
-        |> List.filter ~f:(fun p -> (IntGrid.gett_exn topo.grid ~pos:p) = 0)
-        |> List.map ~f:(fun p -> { topo with start=p }) in
+        |> List.filter ~f:(fun p -> IntGrid.gett_exn topo.grid ~pos:p = 0)
+        |> List.map ~f:(fun p -> { topo with start = p })
+      in
       low_starting_topos
-      |> List.filter_map ~f:(fun t -> (Option.map ~f:num_steps (astar t)))
-      |> min_ints
-      |> Option.value_exn
+      |> List.filter_map ~f:(fun t -> Option.map ~f:num_steps (astar t))
+      |> min_ints |> Option.value_exn
   (* "part 10" is the failed dfs with heuristics implementation *)
   | 10 ->
       dfs topo ~prune_to_shortest:true
