@@ -61,4 +61,20 @@ let solve params lines =
       Printf.printf "amount of sand = %d\n" amount_sand;
       Printf.printf "simulation steps = %d\n" final_state.step;
       amount_sand
+  (* "part 10" is a terminal animation of the sand falling into the cave *)
+  | 10 ->
+      let i = ref 0 in
+      let state =
+        ref
+          { cave = build_cave rockpaths; particle = initial_particle; step = 0 }
+      in
+      while !i < 200000 && particle_inbounds !state do
+        Printf.printf "\027[2J\027[H";
+        Printf.printf "step %d\n\n" !i;
+        print_endline (pp_state ~color:true !state);
+        Caml_unix.sleepf 0.01;
+        state := run !state 1;
+        i := !i + 1
+      done;
+      0
   | _ -> raise @@ Failure "invalid part"

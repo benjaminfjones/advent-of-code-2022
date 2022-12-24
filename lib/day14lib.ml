@@ -29,7 +29,15 @@ end
 
 type matter = Air | Rock | Sand [@@deriving sexp, compare]
 
-let pp_matter = function Air -> "." | Rock -> "#" | Sand -> "o"
+let pp_matter ?(color = false) m =
+  if color then
+    match m with
+    | Air -> "."
+    | Rock -> "\027[0;34m#\027[0;37m"
+    | Sand -> "\027[0;33mo\027[0;37m"
+  else match m with Air -> "." | Rock -> "#" | Sand -> "o"
+
+let pp_mark ?(color = false) () = if color then "\027[0;31mx\027[0;37m" else "x"
 
 module PosMap = Map.Make (Pos)
 
@@ -82,7 +90,7 @@ module Cave = struct
     |> List.filter ~f:(fun (_, m) -> match m with Sand -> true | _ -> false)
     |> List.length
 
-  let pp ?(mark = None) cave =
+  let pp ?(mark = None) ?(color = false) cave =
     let x0, y0 = Pos.to_ cave.bounds.lower
     and x1, y1 = Pos.to_ cave.bounds.upper in
     let header =
@@ -101,8 +109,8 @@ module Cave = struct
                |> map ~f:(fun x ->
                       let p = Pos.of_ (x, y) in
                       match mark with
-                      | Some m when Pos.compare m p = 0 -> "x"
-                      | _ -> get cave p |> pp_matter)
+                      | Some m when Pos.compare m p = 0 -> pp_mark ~color ()
+                      | _ -> get cave p |> pp_matter ~color)
                |> String.concat
                |> fun row -> Printf.sprintf "%3d %s\n" y row)
         |> String.concat)
@@ -115,7 +123,8 @@ let out_of_bounds_particle = Pos.of_ (500, -1)
 
 type state = { cave : Cave.t; particle : Pos.t; step : int } [@@deriving sexp]
 
-let pp_state st = Cave.pp st.cave ~mark:(Some st.particle)
+let pp_state ?(color = false) st =
+  Cave.pp st.cave ~mark:(Some st.particle) ~color
 
 let next_pos p =
   List.map

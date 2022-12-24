@@ -1,6 +1,6 @@
 (executable
  (public_name aoc2022)
  (name main)
- (libraries core lib)
- (preprocess (pps ppx_jane))
-)
+ (libraries core core_unix lib)
+ (preprocess
+  (pps ppx_jane)))
