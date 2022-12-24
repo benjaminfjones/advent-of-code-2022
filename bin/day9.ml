@@ -127,9 +127,7 @@ let solve params lines =
       List.length (List.dedup_and_sort ~compare:compare_vec2 final_state.trace)
   | 2 ->
       (* A rope with 10 knots *)
-      let initial_state =
-        { knots = repeat ~num:10 zero; trace = [ zero ] }
-      in
+      let initial_state = { knots = repeat ~num:10 zero; trace = [ zero ] } in
       let final_state = exec_move_list moves initial_state in
       List.length (List.dedup_and_sort ~compare:compare_vec2 final_state.trace)
   | _ -> raise @@ Failure "invalid part"

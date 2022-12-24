@@ -20,8 +20,7 @@ let num_steps (path : position list) : int = List.length path - 1
 type topomap = { start : position; end_ : position; grid : Grid.t }
 
 let can_move topo old_pos new_pos =
-  Grid.gett_exn topo.grid ~pos:new_pos
-  - Grid.gett_exn topo.grid ~pos:old_pos
+  Grid.gett_exn topo.grid ~pos:new_pos - Grid.gett_exn topo.grid ~pos:old_pos
   <= 1
 
 (*
@@ -72,9 +71,7 @@ let astar (topo : topomap) : position list option =
   (* gscore = min path length to each position so far under consideration.
      Global upper bound on path lengths is the number of positions in the
      grid. *)
-  let global_max_gscore =
-    (Grid.height topo.grid * Grid.width topo.grid) + 1
-  in
+  let global_max_gscore = (Grid.height topo.grid * Grid.width topo.grid) + 1 in
   let gscore st pos =
     PosMap.find st.gscore pos |> Option.value ~default:global_max_gscore
   in

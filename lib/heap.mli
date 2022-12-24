@@ -1,3 +1,4 @@
+type 'a t
 (** A Pairing Heap
 
     Adapted from the implementation in Core_kernel
@@ -5,7 +6,6 @@
       - https://github.com/janestreet/core_kernel
       - https://en.wikipedia.org/wiki/Pairing_heap
 *)
-type 'a t
 
 val add : 'a t -> 'a -> 'a t
 val empty : compare:('a -> 'a -> int) -> 'a t

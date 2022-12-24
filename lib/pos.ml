@@ -21,7 +21,7 @@ let meet p1 p2 =
   Vec.of_ (min x z, min y w)
 
 let less_eq p1 p2 =
-  let (dx, dy) = Vec.to_ (rel ~origin:p1 p2) in
+  let dx, dy = Vec.to_ (rel ~origin:p1 p2) in
   dx >= 0 && dy >= 0
 
 let pp p =
@@ -48,4 +48,3 @@ let%test_unit "less_eq is not lexico 2" =
 
 let%test_unit "less_eq is not lexico 3" =
   [%test_eq: bool] (less_eq (of_ (1, 1)) (of_ (3, 9))) true
-

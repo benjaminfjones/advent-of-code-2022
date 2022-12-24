@@ -46,7 +46,9 @@ let best_scenic_score g =
   |> Option.value ~default:0
 
 let solve params lines =
-  let g = Grid.from_lines ~f:(fun c -> int_of_string (Char.to_string c)) lines in
+  let g =
+    Grid.from_lines ~f:(fun c -> int_of_string (Char.to_string c)) lines
+  in
   match params.(1) |> int_of_string with
   | 1 -> count_visible g
   | 2 -> best_scenic_score g

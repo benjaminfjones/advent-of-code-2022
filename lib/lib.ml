@@ -1,5 +1,4 @@
 open Core
-
 module Pos = Pos
 module Vec = Vec
 module Heap = Heap
