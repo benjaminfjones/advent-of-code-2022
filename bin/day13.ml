@@ -1,5 +1,5 @@
 open Core
-open Aoc2022_lib
+open Lib.Util
 
 (*
  * Expressions and expression comparison

@@ -2,7 +2,7 @@
     Day 7
     ************)
 open Core
-open Aoc2022_lib
+open Lib.Util
 
 (* `entry` is a filesystem tree *)
 type entry =

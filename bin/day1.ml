@@ -1,5 +1,5 @@
 open Core
-open Aoc2022_lib
+open Lib.Util
 
 let parse_input lines =
   let proc acc x =

@@ -1,5 +1,5 @@
 open Core
-open Aoc2022_lib
+open Lib
 
 let solvers : (module Solver) Array.t =
   [|
@@ -16,6 +16,7 @@ let solvers : (module Solver) Array.t =
     (module Day11);
     (module Day12);
     (module Day13);
+    (module Day14);
   |]
 
 let () =

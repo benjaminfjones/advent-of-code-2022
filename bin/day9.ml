@@ -1,4 +1,5 @@
 open Core
+open Lib.Util
 
 type vec2 = int * int
 
@@ -110,7 +111,7 @@ let parse_line line =
   match String.split line ~on:' ' with
   | [ d; s ] -> (
       match parse_move d with
-      | Some d -> Aoc2022_lib.repeat ~num:(int_of_string s) d
+      | Some d -> repeat ~num:(int_of_string s) d
       | None -> failwith ("parse error for line: " ^ line))
   | _ -> failwith ("parse error for line: " ^ line)
 
@@ -127,7 +128,7 @@ let solve params lines =
   | 2 ->
       (* A rope with 10 knots *)
       let initial_state =
-        { knots = Aoc2022_lib.repeat ~num:10 zero; trace = [ zero ] }
+        { knots = repeat ~num:10 zero; trace = [ zero ] }
       in
       let final_state = exec_move_list moves initial_state in
       List.length (List.dedup_and_sort ~compare:compare_vec2 final_state.trace)

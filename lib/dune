@@ -1,3 +1,13 @@
 (library
- (name aoc2022_lib)
- (libraries core))
+ (name lib)
+ (libraries core)
+ (modules
+   grid
+   heap
+   lib
+   pos
+   range
+   util
+   vec
+   )
+ (preprocess (pps ppx_jane)))

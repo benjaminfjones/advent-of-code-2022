@@ -1,5 +1,6 @@
 open Core
-open Aoc2022_lib
+open Lib
+open Util
 
 (* 2d positions *)
 
@@ -16,11 +17,11 @@ let pp_path (path : position list) : string =
 let num_steps (path : position list) : int = List.length path - 1
 
 (* Topomap is a 2d grid of positive integer heights *)
-type topomap = { start : position; end_ : position; grid : IntGrid.t }
+type topomap = { start : position; end_ : position; grid : Grid.t }
 
 let can_move topo old_pos new_pos =
-  IntGrid.gett_exn topo.grid ~pos:new_pos
-  - IntGrid.gett_exn topo.grid ~pos:old_pos
+  Grid.gett_exn topo.grid ~pos:new_pos
+  - Grid.gett_exn topo.grid ~pos:old_pos
   <= 1
 
 (*
@@ -47,7 +48,7 @@ module PosSet = Set.Make (Position)
 module PosMap = Map.Make (Position)
 
 let uphill_neighbors topo pos =
-  IntGrid.cardinal_neighbors topo.grid pos |> List.filter ~f:(can_move topo pos)
+  Grid.cardinal_neighbors topo.grid pos |> List.filter ~f:(can_move topo pos)
 
 let reconstruct_path (came_from : position PosMap.t) (current : position) :
     position list =
@@ -72,7 +73,7 @@ let astar (topo : topomap) : position list option =
      Global upper bound on path lengths is the number of positions in the
      grid. *)
   let global_max_gscore =
-    (IntGrid.height topo.grid * IntGrid.width topo.grid) + 1
+    (Grid.height topo.grid * Grid.width topo.grid) + 1
   in
   let gscore st pos =
     PosMap.find st.gscore pos |> Option.value ~default:global_max_gscore
@@ -149,20 +150,20 @@ let closer_to_goal topo p1 p2 =
 
 let higher topo p1 p2 =
   Int.compare
-    (IntGrid.gett_exn topo.grid ~pos:p2)
-    (IntGrid.gett_exn topo.grid ~pos:p1)
+    (Grid.gett_exn topo.grid ~pos:p2)
+    (Grid.gett_exn topo.grid ~pos:p1)
 
 let higher_and_closer topo p1 p2 =
   let hc =
     Int.compare
-      (IntGrid.gett_exn topo.grid ~pos:p2)
-      (IntGrid.gett_exn topo.grid ~pos:p1)
+      (Grid.gett_exn topo.grid ~pos:p2)
+      (Grid.gett_exn topo.grid ~pos:p1)
   in
   if hc <> 0 then hc else closer_to_goal topo p1 p2
 
 let admissible_neighbors topo pos visited =
   (* all *)
-  IntGrid.cardinal_neighbors topo.grid pos
+  Grid.cardinal_neighbors topo.grid pos
   (* movable *)
   |> List.filter ~f:(can_move topo pos)
   (* unvisited and movable *)
@@ -284,13 +285,13 @@ let parse_input (lines : string list) : topomap =
       | [ "start"; s; "end"; e ] -> (
           let start_height = int_of_string s in
           let end_height = int_of_string e in
-          let g = IntGrid.from_lines ~f:alpha_to_height rest in
-          let mstart = IntGrid.find g ~f:(fun h -> h = -1) in
-          let mend = IntGrid.find g ~f:(fun h -> h = -2) in
+          let g = Grid.from_lines ~f:alpha_to_height rest in
+          let mstart = Grid.find g ~f:(fun h -> h = -1) in
+          let mend = Grid.find g ~f:(fun h -> h = -2) in
           match (mstart, mend) with
           | Some start, Some end_ ->
-              IntGrid.set g ~col:(fst start) ~row:(snd start) start_height;
-              IntGrid.set g ~col:(fst end_) ~row:(snd end_) end_height;
+              Grid.set g ~col:(fst start) ~row:(snd start) start_height;
+              Grid.set g ~col:(fst end_) ~row:(snd end_) end_height;
               { start; end_; grid = g }
           | _ -> failwith "failed to find start and/or end")
       | _ -> failwith "could not parse first start/end height line")
@@ -304,8 +305,8 @@ let solve params lines =
       | None -> failwith "failed to solve part 1")
   | 2 ->
       let low_starting_topos =
-        IntGrid.positions topo.grid
-        |> List.filter ~f:(fun p -> IntGrid.gett_exn topo.grid ~pos:p = 0)
+        Grid.positions topo.grid
+        |> List.filter ~f:(fun p -> Grid.gett_exn topo.grid ~pos:p = 0)
         |> List.map ~f:(fun p -> { topo with start = p })
       in
       low_starting_topos

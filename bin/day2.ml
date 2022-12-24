@@ -1,5 +1,5 @@
 open Core
-open Aoc2022_lib
+open Lib.Util
 
 type move = Rock | Paper | Scissors
 
